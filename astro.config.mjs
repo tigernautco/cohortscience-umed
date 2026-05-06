@@ -30,7 +30,7 @@ const slugCollisionCheck = {
 };
 
 export default defineConfig({
-  site: 'https://pdfs.example.com',
+  site: 'https://cohortscience-umed.netlify.app/',
   output: 'static',
   integrations: [slugCollisionCheck],
 });
