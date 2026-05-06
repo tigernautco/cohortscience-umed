@@ -1,17 +1,276 @@
 ---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import fs from 'node:fs';
+import path from 'node:path';
 
+const all = (await getCollection('pdfs')).sort(
+  (a, b) => b.data.uploadedAt.valueOf() - a.data.uploadedAt.valueOf()
+);
+const archivedCount = all.filter((e) => e.data.archived).length;
+
+const fmtSize = (file) => {
+  if (!file) return null;
+  const abs = path.resolve('public', file.replace(/^\/+/, ''));
+  try {
+    const bytes = fs.statSync(abs).size;
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  } catch {
+    console.warn(`[pdf-hosting] PDF missing on disk, rendering "—" for size: ${abs}`);
+    return null;
+  }
+};
+
+const groups = [];
+for (const entry of all) {
+  const key = entry.data.uploadedAt.toISOString().slice(0, 7);
+  let g = groups[groups.length - 1];
+  if (!g || g.key !== key) {
+    g = { key, label: entry.data.uploadedAt.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }), entries: [] };
+    groups.push(g);
+  }
+  g.entries.push({ ...entry, size: fmtSize(entry.data.file) });
+}
+
+const fmtDate = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 ---
+<Base title="Document Library" description="Browse, search, and download published documents.">
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">Document Library</p>
+      <h2>All documents</h2>
+      <p class="intro">Browse, search, and download our published documents.</p>
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+      {all.length === 0 ? (
+        <div class="empty">
+          <p>No documents yet.</p>
+          <p><a href="/admin/">Upload one in the admin panel →</a></p>
+        </div>
+      ) : (
+        <div id="library">
+          <div id="search-wrap">
+            <input id="search" type="search" placeholder="Search documents…" aria-label="Search documents" autocomplete="off" />
+            <button id="search-clear" type="button" aria-label="Clear search" hidden>×</button>
+          </div>
+          <p id="results-count" aria-live="polite">Showing {all.length - archivedCount} of {all.length - archivedCount} documents</p>
+          <p id="no-matches" class="empty" hidden>No documents match your search. Try different keywords or <button type="button" class="link-button" id="no-matches-clear">clear the search</button>.</p>
+
+          {groups.map((g) => (
+            <section class="month-group" data-month={g.key}>
+              <p class="month-header eyebrow">{g.label}</p>
+              <div class="pdf-grid">
+                {g.entries.map(({ data, size }) => (
+                  <article class={`pdf-item${data.archived ? ' is-archived' : ''}`} data-search={`${data.title} ${data.description || ''} ${data.slug}`.toLowerCase()}>
+                    {data.thumbnail && (
+                      <a class="thumb" href={`/pdfs/${data.slug}.pdf`} aria-label={`Open ${data.title}`}>
+                        <img src={data.thumbnail} alt="" loading="lazy" />
+                      </a>
+                    )}
+                    <div class="pdf-body">
+                      <h3 class="title-row">
+                        {data.archived && <span class="badge">Archived</span>}
+                        <a class="title" href={`/pdfs/${data.slug}.pdf`}>{data.title}</a>
+                      </h3>
+                      {data.description && <p class="desc">{data.description}</p>}
+                      <p class="meta">
+                        <time datetime={data.uploadedAt.toISOString()}>{fmtDate(data.uploadedAt)}</time>
+                        <span>{size || '—'}</span>
+                      </p>
+                      <a class="cta" href={`/pdfs/${data.slug}.pdf`}>Open PDF</a>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ))}
+
+          {archivedCount > 0 && (
+            <button id="archived-toggle" type="button" aria-expanded="false" data-count={archivedCount}>
+              Show {archivedCount} archived
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <style is:global>
+    .intro { margin: 1rem 0 2.5rem; max-width: 50rem; }
+    .empty { color: var(--color-text); opacity: 0.7; }
+
+    #search-wrap { position: relative; max-width: 32rem; margin: 0; }
+    #search {
+      width: 100%;
+      padding: 0.9rem 3rem 0.9rem 1.25rem;
+      font-family: var(--font-body);
+      font-size: 1.0625rem;
+      letter-spacing: -0.25px;
+      color: var(--color-text);
+      background: #ffffff;
+      border: 1px solid rgba(1, 16, 89, 0.15);
+      border-radius: 6px;
+      transition: border-color 150ms ease;
+    }
+    #search:focus { outline: none; border-color: var(--color-blue-highlight); }
+    #search-clear {
+      position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+      background: none; border: 0; cursor: pointer;
+      width: 2rem; height: 2rem; line-height: 1; font-size: 1.5rem;
+      color: var(--color-blue-dark); opacity: 0.5;
+      border-radius: 4px; transition: opacity 150ms ease;
+    }
+    #search-clear:hover { opacity: 1; }
+    #results-count { margin: 0.75rem 0 1rem; font-size: 0.95rem; opacity: 0.6; }
+
+    .month-group { margin: 0; }
+    .month-header { margin: 2.5rem 0 0; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); }
+    .month-group:first-of-type .month-header { margin-top: 1.5rem; }
+    #library.searching .month-header { display: none; }
+
+    .pdf-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4rem 3rem;
+      margin: 1.5rem 0 0;
+    }
+    .pdf-item { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+    .pdf-item .thumb {
+      display: block;
+      aspect-ratio: 16 / 9;
+      background: #ffffff;
+      border: 1px solid var(--color-blue);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .pdf-item .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pdf-body { display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
+    .pdf-item .title-row {
+      margin: 0;
+      display: flex; flex-wrap: wrap; gap: 0.6rem;
+      align-items: baseline;
+      font-size: clamp(1.5rem, 2.6vw, 2rem);
+      letter-spacing: -1px;
+      line-height: 1.2;
+    }
+    .pdf-item .title {
+      font: inherit;
+      color: var(--color-blue-dark);
+      text-decoration: none;
+    }
+    .pdf-item .title:hover { color: var(--color-blue-highlight); }
+    .pdf-item .desc { margin: 0; opacity: 0.85; }
+    .pdf-item .meta {
+      margin: 0;
+      display: flex; flex-wrap: wrap; gap: 1rem;
+      font-size: 0.9rem; opacity: 0.55;
+    }
+    .pdf-item .cta {
+      align-self: flex-start;
+      margin-top: 0.25rem;
+      display: inline-block;
+      background: var(--color-blue);
+      color: #ffffff;
+      padding: 0.65rem 1.25rem;
+      border-radius: 6px;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: -0.25px;
+      text-decoration: none;
+      transition: background 150ms ease;
+    }
+    .pdf-item .cta:hover, .pdf-item .cta:focus-visible { background: var(--color-blue-highlight); color: #ffffff; }
+
+    .badge {
+      display: inline-block;
+      background: rgba(8, 29, 170, 0.1);
+      color: var(--color-blue);
+      font-family: var(--font-heading);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+    #library:not(.show-archived) .is-archived { display: none; }
+    .is-archived { opacity: 0.7; }
+
+    #archived-toggle {
+      margin-top: 2.5rem;
+      background: none;
+      border: 1px solid rgba(1, 16, 89, 0.15);
+      border-radius: 6px;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--color-blue);
+      transition: color 150ms ease, border-color 150ms ease;
+    }
+    #archived-toggle:hover { color: var(--color-blue-highlight); border-color: var(--color-blue-highlight); }
+
+    .link-button {
+      background: none; border: 0; padding: 0; cursor: pointer;
+      font: inherit; color: var(--color-blue); text-decoration: underline;
+    }
+    .link-button:hover { color: var(--color-blue-highlight); }
+
+    @media (max-width: 768px) {
+      .pdf-grid { grid-template-columns: 1fr; gap: 3rem; }
+    }
+  </style>
+  <script is:inline>
+    (() => {
+      const lib = document.getElementById('library');
+      if (!lib) return;
+      const input = document.getElementById('search');
+      const clear = document.getElementById('search-clear');
+      const noMatches = document.getElementById('no-matches');
+      const noMatchesClear = document.getElementById('no-matches-clear');
+      const countEl = document.getElementById('results-count');
+      const toggle = document.getElementById('archived-toggle');
+      const items = [...lib.querySelectorAll('.pdf-item')];
+      const sections = [...lib.querySelectorAll('.month-group')];
+      let q = '';
+      const refresh = () => {
+        const showArchived = lib.classList.contains('show-archived');
+        let available = 0, visible = 0;
+        for (const it of items) {
+          const archOk = !it.classList.contains('is-archived') || showArchived;
+          const searchOk = !q || it.dataset.search.includes(q);
+          const show = archOk && searchOk;
+          it.style.display = show ? '' : 'none';
+          if (archOk) available++;
+          if (show) visible++;
+        }
+        for (const sec of sections) {
+          const has = [...sec.querySelectorAll('.pdf-item')].some((i) => i.style.display !== 'none');
+          sec.style.display = has ? '' : 'none';
+        }
+        lib.classList.toggle('searching', !!q);
+        if (countEl) countEl.textContent = `Showing ${visible} of ${available} document${available === 1 ? '' : 's'}`;
+        if (noMatches) noMatches.hidden = visible > 0 || !q;
+      };
+      const reset = () => { input.value = ''; clear.hidden = true; q = ''; refresh(); input.focus(); };
+      let t;
+      input?.addEventListener('input', () => {
+        clear.hidden = !input.value;
+        clearTimeout(t);
+        t = setTimeout(() => { q = input.value.toLowerCase().trim(); refresh(); }, 150);
+      });
+      clear?.addEventListener('click', reset);
+      noMatchesClear?.addEventListener('click', reset);
+      toggle?.addEventListener('click', () => {
+        const open = lib.classList.toggle('show-archived');
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.textContent = (open ? 'Hide ' : 'Show ') + toggle.dataset.count + ' archived';
+        refresh();
+      });
+    })();
+  </script>
+</Base>

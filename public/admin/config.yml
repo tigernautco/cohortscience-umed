@@ -1,0 +1,53 @@
+backend:
+  name: git-gateway
+  branch: main
+  commit_messages:
+    create: 'Add PDF: {{slug}}'
+    update: 'Update PDF: {{slug}}'
+    delete: 'Remove PDF: {{slug}}'
+
+media_folder: public/pdfs
+public_folder: /pdfs
+
+collections:
+  - name: pdfs
+    label: PDFs
+    label_singular: PDF
+    folder: src/content/pdfs
+    create: true
+    extension: md
+    format: frontmatter
+    slug: '{{fields.slug}}'
+    summary: '{{title}}{{#if archived}} [archived]{{/if}}'
+    fields:
+      - { label: Title, name: title, widget: string }
+      - label: Slug
+        name: slug
+        widget: string
+        hint: 'Lowercase letters, numbers, and single hyphens only — e.g. q3-financial-report'
+        pattern: ['^[a-z0-9]+(-[a-z0-9]+)*$', 'Must be kebab-case: lowercase, no spaces, single hyphens, no leading/trailing hyphens']
+      - label: PDF File
+        name: file
+        widget: file
+        hint: 'PDF only. The filename you upload doesn''t matter — the slug above determines the public URL.'
+        media_library:
+          config:
+            multiple: false
+        pattern: ['\.pdf$', 'File must be a .pdf']
+      - { label: Uploaded, name: uploadedAt, widget: datetime, default: '' }
+      - { label: Description, name: description, widget: text, required: false, hint: 'Brief intro shown on the homepage card.' }
+      - label: Thumbnail
+        name: thumbnail
+        widget: image
+        required: false
+        hint: 'Optional preview image shown on the homepage card. PNG or JPG, ideally 16:9.'
+        media_folder: '/public/thumbnails'
+        public_folder: '/thumbnails'
+        media_library:
+          config:
+            multiple: false
+      - label: 'Archived (hide from index, keep URL alive)'
+        name: archived
+        widget: boolean
+        default: false
+        required: false

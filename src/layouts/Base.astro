@@ -1,0 +1,342 @@
+---
+const {
+  title = 'Document Library',
+  description = 'Document hosting',
+  ogImage = '/og-image.png',
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImageUrl = new URL(ogImage, Astro.site).toString();
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js" defer></script>
+    <style is:global>
+      @font-face {
+        font-family: "Manrope";
+        src: url("/fonts/Manrope-VariableFont_wght.ttf") format("truetype"),
+             url("/fonts/Manrope-VariableFont_wght.ttf") format("truetype");
+        font-weight: 200 800;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "LT Superior";
+        src: url("/fonts/LTSuperior-Medium.ttf") format("truetype");
+        font-weight: 500;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      /* === EDIT THESE VARIABLES TO REBRAND THE SITE === */
+      :root {
+        --color-bg: #f1f5ff;
+        --color-blue: #081daa;
+        --color-blue-dark: #011059;
+        --color-blue-highlight: #0929f8;
+        --color-text: #0c202a;
+        --color-border: rgba(8, 29, 170, 0.1);
+
+        --font-heading: "Manrope", system-ui, sans-serif;
+        --font-body: "LT Superior", system-ui, sans-serif;
+
+        --section-padding-y: 8rem;
+        --section-padding-x: 3%;
+        --container-max: 90rem;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: var(--font-body);
+        font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+        line-height: 1.3;
+        letter-spacing: -0.25px;
+        background: var(--color-bg);
+        color: var(--color-text);
+      }
+      h1, h2, h3, h4 {
+        font-family: var(--font-heading);
+        font-weight: 700;
+        color: var(--color-blue-dark);
+        line-height: 1.3;
+        margin: 0;
+      }
+      h1 { font-size: clamp(2.5rem, 5.5vw, 4rem); letter-spacing: -2px; }
+      h2 { font-size: clamp(2rem, 4.2vw, 3rem); letter-spacing: -2px; }
+      h3 { font-size: clamp(1.5rem, 2.6vw, 2rem); letter-spacing: -1px; }
+      h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); letter-spacing: -0.5px; }
+      p { margin: 0; }
+      a { color: var(--color-blue); transition: color 150ms ease; }
+      a:hover, a:focus-visible { color: var(--color-blue-highlight); }
+      :focus-visible { outline: 2px solid var(--color-blue-highlight); outline-offset: 2px; }
+
+      .section { padding: var(--section-padding-y) var(--section-padding-x); }
+      .container { max-width: var(--container-max); margin: 0 auto; }
+      .eyebrow {
+        font-family: var(--font-heading);
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--color-blue);
+      }
+
+      .announcement {
+        background: var(--color-blue);
+        color: #ffffff;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        text-align: center;
+        padding: 0.65rem var(--section-padding-x);
+      }
+      .announcement a { color: #ffffff; text-decoration: underline; margin-left: 0.5rem; }
+      .announcement a:hover { opacity: 0.85; color: #ffffff; }
+
+      .site-header { background: var(--color-bg); position: relative; }
+      .header-inner {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        max-width: var(--container-max);
+        margin: 0 auto;
+        padding: 1rem var(--section-padding-x);
+      }
+      .brand {
+        margin-right: auto;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        transition: opacity 150ms ease;
+      }
+      .brand img { display: block; height: 28px; width: auto; }
+      .brand:hover { opacity: 0.8; }
+
+      .primary-nav > ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 1.75rem; align-items: center; }
+      .nav-item { position: relative; }
+      .nav-link {
+        background: none; border: 0; padding: 0.5rem 0; cursor: pointer;
+        font-family: var(--font-heading); font-weight: 500; font-size: 1rem;
+        color: var(--color-text); display: inline-flex; align-items: center; gap: 0.3rem;
+        transition: color 150ms ease;
+      }
+      .nav-link:hover, .nav-item.open > .nav-link { color: var(--color-blue-highlight); }
+      .nav-link .caret { font-size: 0.7rem; transition: transform 200ms ease; }
+      .nav-item.open > .nav-link .caret { transform: rotate(180deg); }
+
+      .nav-dropdown {
+        position: absolute; top: calc(100% + 0.5rem); left: 0;
+        list-style: none; padding: 0.5rem; margin: 0;
+        min-width: 14rem;
+        background: #ffffff;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(1, 16, 89, 0.08);
+        display: none;
+        z-index: 20;
+      }
+      .nav-item.open > .nav-dropdown { display: block; }
+      .nav-dropdown a {
+        display: block; padding: 0.5rem 0.75rem; border-radius: 4px;
+        font-family: var(--font-heading); font-weight: 500; font-size: 0.95rem;
+        color: var(--color-blue-dark); text-decoration: none;
+        transition: background 150ms ease, color 150ms ease;
+      }
+      .nav-dropdown a:hover { background: rgba(8, 29, 170, 0.06); color: var(--color-blue-highlight); }
+
+      .header-actions { display: flex; gap: 0.75rem; align-items: center; }
+      .btn {
+        display: inline-block;
+        padding: 0.6rem 1.1rem;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 0.95rem;
+        line-height: 1.2;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+      }
+      .btn-outline { background: transparent; color: var(--color-blue-dark); border: 1px solid var(--color-blue-dark); }
+      .btn-outline:hover { background: var(--color-blue-dark); color: #ffffff; }
+      .btn-primary { background: var(--color-blue); color: #ffffff; border: 1px solid var(--color-blue); }
+      .btn-primary:hover { background: var(--color-blue-highlight); border-color: var(--color-blue-highlight); color: #ffffff; }
+
+      .hamburger {
+        display: none; background: none; border: 0; padding: 0.5rem; cursor: pointer;
+        margin-left: auto;
+      }
+      .hamburger span { display: block; width: 26px; height: 2px; background: var(--color-blue-dark); margin: 5px 0; transition: transform 200ms ease, opacity 200ms ease; }
+      .site-header.menu-open .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+      .site-header.menu-open .hamburger span:nth-child(2) { opacity: 0; }
+      .site-header.menu-open .hamburger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+      @media (max-width: 1024px) {
+        .header-inner { flex-wrap: wrap; }
+        .brand { margin-right: auto; }
+        .hamburger { display: block; }
+        .primary-nav, .header-actions { display: none; flex-basis: 100%; }
+        .primary-nav { order: 3; }
+        .header-actions { order: 4; }
+        .site-header.menu-open .primary-nav,
+        .site-header.menu-open .header-actions {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          padding-top: 0.5rem;
+        }
+        .site-header.menu-open .header-actions { gap: 0.75rem; padding-bottom: 1rem; }
+        .site-header.menu-open .primary-nav > ul { flex-direction: column; align-items: stretch; gap: 0; }
+        .site-header.menu-open .nav-item { width: 100%; border-top: 1px solid var(--color-border); }
+        .site-header.menu-open .nav-link { width: 100%; justify-content: space-between; padding: 0.85rem 0; }
+        .site-header.menu-open .nav-dropdown {
+          position: static; box-shadow: none; border: 0; padding: 0 0 0.5rem 1rem; min-width: 0;
+          background: transparent;
+        }
+        .site-header.menu-open .btn { text-align: center; }
+      }
+
+      .site-footer {
+        padding: 4rem var(--section-padding-x);
+      }
+      .site-footer .container { color: var(--color-text); opacity: 0.55; font-size: 0.95rem; }
+      .site-footer a { color: inherit; text-decoration: underline; }
+      .site-footer a:hover { color: var(--color-blue-highlight); opacity: 1; }
+
+      @media (max-width: 768px) {
+        :root { --section-padding-y: 4rem; }
+      }
+
+      @media print {
+        :root { --color-bg: #fff; --color-text: #000; --color-blue: #000; --color-blue-dark: #000; --color-blue-highlight: #000; }
+        .announcement, .site-header, .site-footer, #search-wrap, #archived-toggle { display: none !important; }
+        .is-archived { display: none !important; }
+        a { color: var(--color-text); text-decoration: underline; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="announcement">
+      <span>uMed Announces Strategic Partnership with WellSky&reg;</span>
+      <a href="https://umed.io/news-insights" target="_blank" rel="noopener">Read now</a>
+    </div>
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="/" class="brand" aria-label="uMed home"><img src="/logo.svg" alt="uMed" /></a>
+        <nav class="primary-nav" aria-label="Primary">
+          <ul>
+            <li class="nav-item">
+              <button type="button" class="nav-link" aria-expanded="false" aria-haspopup="true">What we do <span class="caret" aria-hidden="true">▾</span></button>
+              <ul class="nav-dropdown">
+                <li><a href="https://umed.io/cohorts" target="_blank" rel="noopener">Cohorts</a></li>
+                <li><a href="https://umed.io/study-services" target="_blank" rel="noopener">Study Services</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <button type="button" class="nav-link" aria-expanded="false" aria-haspopup="true">Products <span class="caret" aria-hidden="true">▾</span></button>
+              <ul class="nav-dropdown">
+                <li><a href="https://umed.io/collect" target="_blank" rel="noopener">Collect</a></li>
+                <li><a href="https://umed.io/recruit" target="_blank" rel="noopener">Recruit</a></li>
+                <li><a href="https://umed.io/access-cohort-studies/spanaccess" target="_blank" rel="noopener">SpanACCESS</a></li>
+                <li><a href="https://umed.io/access-cohort-studies/snapaccess" target="_blank" rel="noopener">SnapACCESS</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <button type="button" class="nav-link" aria-expanded="false" aria-haspopup="true">Platform <span class="caret" aria-hidden="true">▾</span></button>
+              <ul class="nav-dropdown">
+                <li><a href="https://umed.io/platform/accesscmd" target="_blank" rel="noopener">ACCESSCMD</a></li>
+                <li><a href="https://umed.io/platform/accesspd" target="_blank" rel="noopener">ACCESSPD</a></li>
+                <li><a href="https://umed.io/platform/accessild" target="_blank" rel="noopener">ACCESSILD</a></li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <button type="button" class="nav-link" aria-expanded="false" aria-haspopup="true">About <span class="caret" aria-hidden="true">▾</span></button>
+              <ul class="nav-dropdown">
+                <li><a href="https://umed.io/about" target="_blank" rel="noopener">About us</a></li>
+                <li><a href="https://umed.io/news-insights" target="_blank" rel="noopener">News &amp; Insights</a></li>
+                <li><a href="https://umed.io/case-studies" target="_blank" rel="noopener">Case Studies</a></li>
+                <li><a href="https://umed.io/careers" target="_blank" rel="noopener">Careers</a></li>
+                <li><a href="https://umed.io/security-privacy" target="_blank" rel="noopener">Security &amp; Privacy</a></li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+        <div class="header-actions">
+          <a href="https://umed.io/patient-support" target="_blank" rel="noopener" class="btn btn-outline">Patient support</a>
+          <a href="https://umed.io/book-a-demo" target="_blank" rel="noopener" class="btn btn-primary">Book a demo</a>
+        </div>
+        <button type="button" class="hamburger" aria-expanded="false" aria-label="Toggle menu" aria-controls="primary-nav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+    <main><slot /></main>
+    <footer class="site-footer">
+      <div class="container">
+        <p>Document Library &middot; <a href="/admin/">Manage</a></p>
+      </div>
+    </footer>
+    <script is:inline>
+      (() => {
+        const header = document.querySelector('.site-header');
+        if (!header) return;
+        const items = [...header.querySelectorAll('.nav-item')];
+        const hamburger = header.querySelector('.hamburger');
+        const closeAll = () => items.forEach((it) => {
+          it.classList.remove('open');
+          it.querySelector('.nav-link')?.setAttribute('aria-expanded', 'false');
+        });
+        items.forEach((it) => {
+          const btn = it.querySelector('.nav-link');
+          btn?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wasOpen = it.classList.contains('open');
+            closeAll();
+            if (!wasOpen) {
+              it.classList.add('open');
+              btn.setAttribute('aria-expanded', 'true');
+            }
+          });
+        });
+        hamburger?.addEventListener('click', () => {
+          const open = header.classList.toggle('menu-open');
+          hamburger.setAttribute('aria-expanded', String(open));
+          if (!open) closeAll();
+        });
+        document.addEventListener('click', (e) => {
+          if (!header.contains(e.target)) closeAll();
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeAll();
+            header.classList.remove('menu-open');
+            hamburger?.setAttribute('aria-expanded', 'false');
+          }
+        });
+      })();
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on('init', (user) => {
+          if (!user) {
+            window.netlifyIdentity.on('login', () => { document.location.href = '/admin/'; });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
