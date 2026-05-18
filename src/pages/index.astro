@@ -38,10 +38,6 @@ const fmtDate = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: '
 <Base title="Document Library" description="Browse, search, and download published documents.">
   <section class="section">
     <div class="container">
-      <p class="eyebrow">Document Library</p>
-      <h2>All documents</h2>
-      <p class="intro">Browse, search, and download our published documents.</p>
-
       {all.length === 0 ? (
         <div class="empty">
           <p>No documents yet.</p>
