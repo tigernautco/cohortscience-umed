@@ -8,5 +8,6 @@ description: >-
   patients with
 
   Parkinson’s Disease
+thumbnail: /thumbnails/case-study-template.png
 archived: false
 ---
