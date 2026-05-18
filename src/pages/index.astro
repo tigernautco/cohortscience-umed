@@ -59,21 +59,21 @@ const fmtDate = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: '
                 {g.entries.map(({ data, size }) => (
                   <article class={`pdf-item${data.archived ? ' is-archived' : ''}`} data-search={`${data.title} ${data.description || ''} ${data.slug}`.toLowerCase()}>
                     {data.thumbnail && (
-                      <a class="thumb" href={`/pdfs/${data.slug}.pdf`} aria-label={`Open ${data.title}`}>
+                      <a class="thumb" href={data.file} aria-label={`Open ${data.title}`}>
                         <img src={data.thumbnail} alt="" loading="lazy" />
                       </a>
                     )}
                     <div class="pdf-body">
                       <h3 class="title-row">
                         {data.archived && <span class="badge">Archived</span>}
-                        <a class="title" href={`/pdfs/${data.slug}.pdf`}>{data.title}</a>
+                        <a class="title" href={data.file}>{data.title}</a>
                       </h3>
                       {data.description && <p class="desc">{data.description}</p>}
                       <p class="meta">
                         <time datetime={data.uploadedAt.toISOString()}>{fmtDate(data.uploadedAt)}</time>
                         <span>{size || '—'}</span>
                       </p>
-                      <a class="cta" href={`/pdfs/${data.slug}.pdf`}>Open PDF</a>
+                      <a class="cta" href={data.file}>Open PDF</a>
                     </div>
                   </article>
                 ))}

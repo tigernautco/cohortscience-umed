@@ -29,7 +29,7 @@ collections:
       - label: PDF File
         name: file
         widget: file
-        hint: 'PDF only. The filename you upload doesn''t matter — the slug above determines the public URL.'
+        hint: 'PDF only. The filename you upload becomes part of the public URL — use a clear lowercase name with hyphens, no spaces.'
         media_library:
           config:
             multiple: false
