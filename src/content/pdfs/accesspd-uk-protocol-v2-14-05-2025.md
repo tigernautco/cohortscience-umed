@@ -1,5 +1,5 @@
 ---
-title: AccessPD UK Protocol, Version 2.0, 14-May-2025
+title: AccessPD UK Protocol, v2.0, 14-May-2025
 slug: accesspd-uk-protocol-v2-14-05-2025
 file: /pdfs/accesspd-uk-protocol-version-2.0-14-may-2025.pdf
 uploadedAt: 2026-05-26T09:27:00.000+12:00
