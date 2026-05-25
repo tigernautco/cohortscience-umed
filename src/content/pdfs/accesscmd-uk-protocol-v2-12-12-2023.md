@@ -1,5 +1,5 @@
 ---
-title: AccessCMD UK Protocol, Version 2.0, 12-Dec-2023
+title: AccessCMD UK Protocol, V2.0, 12-Dec-2023
 slug: accesscmd-uk-protocol-v2-12-12-2023
 file: /pdfs/accesscmd-uk-protocol-version-2.0-12-dec-2023.pdf
 uploadedAt: 2026-05-26T09:25:00.000+12:00
